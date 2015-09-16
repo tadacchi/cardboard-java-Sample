@@ -406,8 +406,8 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
     GLES20.glUniformMatrix4fv(cubeModelViewProjectionParam, 1, false, modelViewProjection, 0);
 
     // Set the normal positions of the cube, again for shading
-    GLES20.glVertexAttribPointer(cubeNormalParam, 3, GLES20.GL_FLOAT, false, 0, cubeNormals);
-    GLES20.glVertexAttribPointer(cubeColorParam, 4, GLES20.GL_FLOAT, false, 0,
+    GLES20.glVertexAttribPointer(cubeNormalParam, 8, GLES20.GL_FLOAT, false, 0, cubeNormals);
+    GLES20.glVertexAttribPointer(cubeColorParam, 16, GLES20.GL_FLOAT, false, 0,
         isLookingAtObject() ? cubeFoundColors : cubeColors);
 
     GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 36);
@@ -443,6 +443,7 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
 
   /**
    * Called when the Cardboard trigger is pulled.
+   * タッチ処理。トースト表示
    */
   @Override
   public void onCardboardTrigger() {
@@ -463,7 +464,7 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
 
   /**
    * Find a new random position for the object.
-   *
+   *ランダムに立方体を表示させること
    * <p>We'll rotate it around the Y-axis so it's out of sight, and then up or down by a little bit.
    */
   private void hideObject() {
@@ -480,8 +481,9 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
     Matrix.scaleM(rotationMatrix, 0, objectScalingFactor, objectScalingFactor,
         objectScalingFactor);
     Matrix.multiplyMV(posVec, 0, rotationMatrix, 0, modelCube, 12);
-
+    //
     // Now get the up or down angle, between -20 and 20 degrees.
+    //-20°から20°の角度を上下する。(立方体の出現場所)
     float angleY = (float) Math.random() * 80 - 40; // Angle in Y plane, between -40 and 40.
     angleY = (float) Math.toRadians(angleY);
     float newY = (float) Math.tan(angleY) * objectDistance;
@@ -492,7 +494,7 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
 
   /**
    * Check if user is looking at object by calculating where the object is in eye-space.
-   *
+   *使用者が目の空間内に立方体を見ているか確認する
    * @return true if the user is looking at the object.
    */
   private boolean isLookingAtObject() {
@@ -500,6 +502,7 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
     float[] objPositionVec = new float[4];
 
     // Convert object space to camera space. Use the headView from onNewFrame.
+    //カメラ空間にオブジェクトを描画する。
     Matrix.multiplyMM(modelView, 0, headView, 0, modelCube, 0);
     Matrix.multiplyMV(objPositionVec, 0, modelView, 0, initVec, 0);
 

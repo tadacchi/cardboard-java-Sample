@@ -225,7 +225,7 @@ public final class WorldLayoutData {
       200f, 0, -200f,
       -200f, 0, -200f,
       -200f, 0, 200f,
-      200f, 0, -200f,
+      100f, 0, -100f,
       -200f, 0, 200f,
       200f, 0, 200f,
   };

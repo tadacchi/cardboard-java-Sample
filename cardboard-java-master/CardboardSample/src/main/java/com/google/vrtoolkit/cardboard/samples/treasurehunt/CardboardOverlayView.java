@@ -32,10 +32,14 @@ import android.widget.TextView;
 
 /**
  * Contains two sub-views to provide a simple stereo HUD.
+ * 二つの画面を表示させる感じですかね
  */
 public class CardboardOverlayView extends LinearLayout {
+  //左目
   private final CardboardOverlayEyeView leftView;
+  //右目
   private final CardboardOverlayEyeView rightView;
+  //見つけた時のテキストかな？
   private AlphaAnimation textFadeAnimation;
 
   public CardboardOverlayView(Context context, AttributeSet attrs) {
