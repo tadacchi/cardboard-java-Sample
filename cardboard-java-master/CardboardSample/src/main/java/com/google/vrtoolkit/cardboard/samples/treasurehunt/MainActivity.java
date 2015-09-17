@@ -199,26 +199,26 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
   public void onSurfaceCreated(EGLConfig config) {
     Log.i(TAG, "onSurfaceCreated");
     GLES20.glClearColor(0.1f, 0.1f, 0.1f, 0.5f); // Dark background so text shows up well.
-	//キューブの頂点
+
     ByteBuffer bbVertices = ByteBuffer.allocateDirect(WorldLayoutData.CUBE_COORDS.length * 4);
     bbVertices.order(ByteOrder.nativeOrder());
     cubeVertices = bbVertices.asFloatBuffer();
     cubeVertices.put(WorldLayoutData.CUBE_COORDS);
     cubeVertices.position(0);
-	//キューブの色
+
     ByteBuffer bbColors = ByteBuffer.allocateDirect(WorldLayoutData.CUBE_COLORS.length * 4);
     bbColors.order(ByteOrder.nativeOrder());
     cubeColors = bbColors.asFloatBuffer();
     cubeColors.put(WorldLayoutData.CUBE_COLORS);
     cubeColors.position(0);
-	//キューブに視点が当たった時の変色
+
     ByteBuffer bbFoundColors = ByteBuffer.allocateDirect(
         WorldLayoutData.CUBE_FOUND_COLORS.length * 4);
     bbFoundColors.order(ByteOrder.nativeOrder());
     cubeFoundColors = bbFoundColors.asFloatBuffer();
     cubeFoundColors.put(WorldLayoutData.CUBE_FOUND_COLORS);
     cubeFoundColors.position(0);
-	//キューブの通常？
+
     ByteBuffer bbNormals = ByteBuffer.allocateDirect(WorldLayoutData.CUBE_NORMALS.length * 4);
     bbNormals.order(ByteOrder.nativeOrder());
     cubeNormals = bbNormals.asFloatBuffer();
@@ -226,19 +226,18 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
     cubeNormals.position(0);
 
     // make a floor
-  	//地面の頂点
     ByteBuffer bbFloorVertices = ByteBuffer.allocateDirect(WorldLayoutData.FLOOR_COORDS.length * 4);
     bbFloorVertices.order(ByteOrder.nativeOrder());
     floorVertices = bbFloorVertices.asFloatBuffer();
     floorVertices.put(WorldLayoutData.FLOOR_COORDS);
     floorVertices.position(0);
-	//地面の通常時
+
     ByteBuffer bbFloorNormals = ByteBuffer.allocateDirect(WorldLayoutData.FLOOR_NORMALS.length * 4);
     bbFloorNormals.order(ByteOrder.nativeOrder());
     floorNormals = bbFloorNormals.asFloatBuffer();
     floorNormals.put(WorldLayoutData.FLOOR_NORMALS);
     floorNormals.position(0);
-	//地面の色
+
     ByteBuffer bbFloorColors = ByteBuffer.allocateDirect(WorldLayoutData.FLOOR_COLORS.length * 4);
     bbFloorColors.order(ByteOrder.nativeOrder());
     floorColors = bbFloorColors.asFloatBuffer();
@@ -451,7 +450,6 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
     if (isLookingAtObject()) {
       score++;
       overlayView.show3DToast("Found it! Look around for another one.\nScore = " + score);
-
       hideObject();
     } else {
       overlayView.show3DToast("Look around to find the object!");
