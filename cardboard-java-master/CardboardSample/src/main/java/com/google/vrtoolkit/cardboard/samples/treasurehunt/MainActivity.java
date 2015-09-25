@@ -338,7 +338,7 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
     Matrix.rotateM(modelCube, 0, TIME_DELTA, 0.5f, 0.5f, 1.0f);
 
     // Build the camera matrix and apply it to the ModelView.
-    Matrix.setLookAtM(camera, 0, 0.0f, 0.0f, CAMERA_Z, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
+    Matrix.setLookAtM(camera, 0, 0.0f, 0.0f, CAMERA_Z, 0.0f, 0.0f, 0.0f, 0.0f, 8.0f, 0.0f);
 
     headTransform.getHeadView(headView, 0);
 
@@ -387,6 +387,7 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
    * <p>We've set all of our transformation matrices. Now we simply pass them into the shader.
    */
   public void drawCube() {
+
     GLES20.glUseProgram(cubeProgram);
 
     GLES20.glUniform3fv(cubeLightPosParam, 1, lightPosInEyeSpace, 0);
@@ -399,7 +400,7 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
 
     // Set the position of the cube
     GLES20.glVertexAttribPointer(cubePositionParam, COORDS_PER_VERTEX, GLES20.GL_FLOAT,
-        false, 0, cubeVertices);
+            false, 0, cubeVertices);
 
     // Set the ModelViewProjection matrix in the shader.
     GLES20.glUniformMatrix4fv(cubeModelViewProjectionParam, 1, false, modelViewProjection, 0);
@@ -407,15 +408,16 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
     // Set the normal positions of the cube, again for shading
     GLES20.glVertexAttribPointer(cubeNormalParam, 3, GLES20.GL_FLOAT, false, 0, cubeNormals);
     GLES20.glVertexAttribPointer(cubeColorParam, 4, GLES20.GL_FLOAT, false, 0,
-        isLookingAtObject() ? cubeFoundColors : cubeColors);
+            isLookingAtObject() ? cubeFoundColors : cubeColors);
 
     GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 36);
     checkGLError("Drawing cube");
+
   }
 
   /**
    * Draw the floor.
-   *
+   *éOäpå`Ç…è∞Çï`âÊÇµÇƒÇ¢Ç≠ÅB
    * <p>This feeds in data for the floor into the shader. Note that this doesn't feed in data about
    * position of the light, so if we rewrite our code to draw the floor first, the lighting might
    * look strange.
