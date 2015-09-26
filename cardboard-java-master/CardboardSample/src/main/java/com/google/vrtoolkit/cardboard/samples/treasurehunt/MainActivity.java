@@ -58,8 +58,8 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
   private static final int COORDS_PER_VERTEX = 3;
 
   // We keep the light always position just above the user.
+  // 光源を常にユーザーの頭上に位置付ける。
   private static final float[] LIGHT_POS_IN_WORLD_SPACE = new float[] { 0.0f, 2.0f, 0.0f, 1.0f };
-
   private final float[] lightPosInEyeSpace = new float[4];
 
   private FloatBuffer floorVertices;
@@ -112,6 +112,8 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
    * @param resId The resource ID of the raw text file about to be turned into a shader.
    * @return The shader object handler.
    */
+	//Shader定義を記述したテキストファイルを読み込む
+	
   private int loadGLShader(int type, int resId) {
     String code = readRawTextFile(resId);
     int shader = GLES20.glCreateShader(type);
@@ -141,6 +143,7 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
    *
    * @param label Label to report in case of error.
    */
+	//OpenGLESのエラーチェック
   private static void checkGLError(String label) {
     int error;
     while ((error = GLES20.glGetError()) != GLES20.GL_NO_ERROR) {
@@ -153,6 +156,7 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
    * Sets the view to our CardboardView and initializes the transformation matrices we will use
    * to render our scene.
    */
+	//CardboardView を設定し、描画のための各種パラメータを初期化する
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
@@ -195,6 +199,8 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
    *
    * @param config The EGL configuration used when creating the surface.
    */
+	//3D空間で利用する情報を保持するためのバッファ領域を確保する。
+	// OpenGL では、Java の配列ではなく、ByteBuffer を利用する。
   @Override
   public void onSurfaceCreated(EGLConfig config) {
     Log.i(TAG, "onSurfaceCreated");
@@ -226,6 +232,7 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
     cubeNormals.position(0);
 
     // make a floor
+  	//床
     ByteBuffer bbFloorVertices = ByteBuffer.allocateDirect(WorldLayoutData.FLOOR_COORDS.length * 4);
     bbFloorVertices.order(ByteOrder.nativeOrder());
     floorVertices = bbFloorVertices.asFloatBuffer();
@@ -310,6 +317,7 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
    * @param resId The resource ID of the raw text file about to be turned into a shader.
    * @return The context of the text file, or null in case of error.
    */
+	//テキストファイルの内容を String に変換する。loadGLShader メソッドから呼び出される。
   private String readRawTextFile(int resId) {
     InputStream inputStream = getResources().openRawResource(resId);
     try {
@@ -332,6 +340,7 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
    *
    * @param headTransform The head transformation in the new frame.
    */
+	//描画前に必ず呼び出されるメソッド。OpenGL ES の準備を行う。
   @Override
   public void onNewFrame(HeadTransform headTransform) {
     // Build the Model part of the ModelView matrix.
@@ -350,6 +359,8 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
    *
    * @param eye The eye to render. Includes all required transformations.
    */
+	//右目・左目の各視点用のフレームを描画する
+	
   @Override
   public void onDrawEye(Eye eye) {
     GLES20.glEnable(GLES20.GL_DEPTH_TEST);
@@ -358,6 +369,7 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
     checkGLError("colorParam");
 
     // Apply the eye transformation to the camera.
+  	//ユーザが見ている方向にあわせて視点を移動する
     Matrix.multiplyMM(view, 0, eye.getEyeView(), 0, camera, 0);
 
     // Set the position of the light
@@ -365,6 +377,7 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
 
     // Build the ModelView and ModelViewProjection matrices
     // for calculating cube position and light.
+  	//キューブの位置や光を計算するためのModelViewとModelViewProjection行列を構築します。
     float[] perspective = eye.getPerspective(Z_NEAR, Z_FAR);
     Matrix.multiplyMM(modelView, 0, view, 0, modelCube, 0);
     Matrix.multiplyMM(modelViewProjection, 0, perspective, 0, modelView, 0);
@@ -466,12 +479,16 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
    *
    * <p>We'll rotate it around the Y-axis so it's out of sight, and then up or down by a little bit.
    */
+	//立方体を再配置する
   private void hideObject() {
     float[] rotationMatrix = new float[16];
     float[] posVec = new float[4];
 
     // First rotate in XZ plane, between 90 and 270 deg away, and scale so that we vary
     // the object's distance from the user.
+  	//見つけた後同じ視界内には出現しないようにする。
+  	//横90°縦270°の範囲から飛ばす
+  	
     float angleXZ = (float) Math.random() * 180 + 90;
     Matrix.setRotateM(rotationMatrix, 0, angleXZ, 0f, 1f, 0f);
     float oldObjectDistance = objectDistance;
@@ -495,6 +512,7 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
    *
    * @return true if the user is looking at the object.
    */
+	//ユーザの視点に立方体が入っているかどうかをチェックする
   private boolean isLookingAtObject() {
     float[] initVec = { 0, 0, 0, 1.0f };
     float[] objPositionVec = new float[4];
