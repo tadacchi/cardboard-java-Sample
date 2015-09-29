@@ -345,9 +345,12 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
   public void onNewFrame(HeadTransform headTransform) {
     // Build the Model part of the ModelView matrix.
     Matrix.rotateM(modelCube, 0, TIME_DELTA, 0.5f, 0.5f, 1.0f);
-
+    int i = 0;
     // Build the camera matrix and apply it to the ModelView.
-    Matrix.setLookAtM(camera, 0, 0.0f, 0.0f, CAMERA_Z, 0.0f, 0.0f, 0.0f, 0.0f, 8.0f, 0.0f);
+    //ここっぽいけど値入れると怒られる。
+    //y軸なら動かせた。x軸なぜ動かない…。
+    //とんでもなく計算がめんどくさい。位置ずらすと視界の中心点もずれる。
+      Matrix.setLookAtM(camera, 0, 1.0f+5.0f, 0.0f, CAMERA_Z , 1.0f+5.0f, 0.0f, 0.0f, 0.0f, 8.0f, 0.0f);
 
     headTransform.getHeadView(headView, 0);
 
@@ -384,9 +387,13 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
     drawCube();
 
     // Set modelView for the floor, so we draw floor in the correct location
+  	//正しい場所にモデルビューをセット！
+    modelView[0]+=5.5f;
+    modelView[1]+=4.5f;
+
     Matrix.multiplyMM(modelView, 0, view, 0, modelFloor, 0);
     Matrix.multiplyMM(modelViewProjection, 0, perspective, 0,
-      modelView, 0);
+            modelView, 0);
     drawFloor();
   }
 
@@ -419,8 +426,9 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
     GLES20.glUniformMatrix4fv(cubeModelViewProjectionParam, 1, false, modelViewProjection, 0);
 
     // Set the normal positions of the cube, again for shading
+    //シェーダってやつ？
     GLES20.glVertexAttribPointer(cubeNormalParam, 3, GLES20.GL_FLOAT, false, 0, cubeNormals);
-    GLES20.glVertexAttribPointer(cubeColorParam, 4, GLES20.GL_FLOAT, false, 0,
+    GLES20.glVertexAttribPointer(cubeColorParam, 3, GLES20.GL_FLOAT, false, 0,
             isLookingAtObject() ? cubeFoundColors : cubeColors);
 
     GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 36);
