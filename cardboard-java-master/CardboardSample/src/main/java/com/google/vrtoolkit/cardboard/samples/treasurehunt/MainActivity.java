@@ -101,7 +101,7 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
   private int score = 0;
   private float objectDistance = 12f;
   private float floorDepth = 20f;
-
+  private float f = 0.0f;
   private Vibrator vibrator;
   private CardboardOverlayView overlayView;
 
@@ -345,12 +345,15 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
   public void onNewFrame(HeadTransform headTransform) {
     // Build the Model part of the ModelView matrix.
     Matrix.rotateM(modelCube, 0, TIME_DELTA, 0.5f, 0.5f, 1.0f);
-    int i = 0;
-    // Build the camera matrix and apply it to the ModelView.
-    //ここっぽいけど値入れると怒られる。
-    //y軸なら動かせた。x軸なぜ動かない…。
-    //とんでもなく計算がめんどくさい。位置ずらすと視界の中心点もずれる。
-      Matrix.setLookAtM(camera, 0, 1.0f+5.0f, 0.0f, CAMERA_Z , 1.0f+5.0f, 0.0f, 0.0f, 0.0f, 8.0f, 0.0f);
+    /*
+    Build the camera matrix and apply it to the ModelView.
+    ここっぽいけど値入れると怒られる。
+    y軸なら動かせた。x軸なぜ動かない…。
+    とんでもなく計算がめんどくさい。位置ずらすと視界の中心点もずれる。
+    CAMERA_Zで動く。＋が後ろ向き
+    ビュー変換行列を作成？
+    */
+    Matrix.setLookAtM(camera, 0, f, 0.0f, CAMERA_Z, 0.0f +f, 0.0f, 0.0f, 0.0f, 8.0f, 0.0f);
 
     headTransform.getHeadView(headView, 0);
 
@@ -377,7 +380,6 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
 
     // Set the position of the light
     Matrix.multiplyMV(lightPosInEyeSpace, 0, view, 0, LIGHT_POS_IN_WORLD_SPACE, 0);
-
     // Build the ModelView and ModelViewProjection matrices
     // for calculating cube position and light.
   	//キューブの位置や光を計算するためのModelViewとModelViewProjection行列を構築します。
@@ -388,8 +390,6 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
 
     // Set modelView for the floor, so we draw floor in the correct location
   	//正しい場所にモデルビューをセット！
-    modelView[0]+=5.5f;
-    modelView[1]+=4.5f;
 
     Matrix.multiplyMM(modelView, 0, view, 0, modelFloor, 0);
     Matrix.multiplyMM(modelViewProjection, 0, perspective, 0,
@@ -470,6 +470,8 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
   public void onCardboardTrigger() {
     Log.i(TAG, "onCardboardTrigger");
 
+    f += 5.0f;
+    Matrix.setLookAtM(camera, 0, 0.0f, 0.0f, CAMERA_Z+f, 0.0f, 0.0f, 0.0f+f, 0.0f, 8.0f, 0.0f);
     if (isLookingAtObject()) {
       score++;
       overlayView.show3DToast("Found it! Look around for another one.\nScore = " + score);
