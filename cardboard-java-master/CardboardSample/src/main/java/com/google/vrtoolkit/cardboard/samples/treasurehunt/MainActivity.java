@@ -101,7 +101,9 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
   private int score = 0;
   private float objectDistance = 12f;
   private float floorDepth = 20f;
-  private float f = 0.0f;
+  private float f= 0.0f;
+  private int g = 0;
+  private int i = 0;
   private Vibrator vibrator;
   private CardboardOverlayView overlayView;
 
@@ -303,7 +305,8 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
 
     // Object first appears directly in front of user.
     Matrix.setIdentityM(modelCube, 0);
-    Matrix.translateM(modelCube, 0, 0, 0, -objectDistance);
+
+    Matrix.translateM(modelCube, 0, g, 0, -objectDistance);
 
     Matrix.setIdentityM(modelFloor, 0);
     Matrix.translateM(modelFloor, 0, 0, -floorDepth, 0); // Floor appears below user.
@@ -374,6 +377,7 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
 
     checkGLError("colorParam");
 
+    i += 1;
     // Apply the eye transformation to the camera.
   	//ユーザが見ている方向にあわせて視点を移動する
     Matrix.multiplyMM(view, 0, eye.getEyeView(), 0, camera, 0);
@@ -428,7 +432,7 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
     // Set the normal positions of the cube, again for shading
     //シェーダってやつ？
     GLES20.glVertexAttribPointer(cubeNormalParam, 3, GLES20.GL_FLOAT, false, 0, cubeNormals);
-    GLES20.glVertexAttribPointer(cubeColorParam, 3, GLES20.GL_FLOAT, false, 0,
+    GLES20.glVertexAttribPointer(cubeColorParam, 4, GLES20.GL_FLOAT, false, 0,
             isLookingAtObject() ? cubeFoundColors : cubeColors);
 
     GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 36);
@@ -469,8 +473,9 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
   @Override
   public void onCardboardTrigger() {
     Log.i(TAG, "onCardboardTrigger");
-
-    f += 5.0f;
+    //g -= 1;
+    //Matrix.translateM(modelCube, 0, 0, g, -objectDistance);
+    f += 1.0f;
     Matrix.setLookAtM(camera, 0, 0.0f, 0.0f, CAMERA_Z+f, 0.0f, 0.0f, 0.0f+f, 0.0f, 8.0f, 0.0f);
     if (isLookingAtObject()) {
       score++;
@@ -524,6 +529,7 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
    */
 	//ユーザの視点に立方体が入っているかどうかをチェックする
   private boolean isLookingAtObject() {
+
     float[] initVec = { 0, 0, 0, 1.0f };
     float[] objPositionVec = new float[4];
 
