@@ -3,6 +3,8 @@
     <CLASSES>
       <root url="jar://$PROJECT_DIR$/cardboard-java-master/CardboardSample/libs/cardboard.jar!/" />
       <root url="jar://$PROJECT_DIR$/cardboard-java-master/CardboardSample/libs/libprotobuf-java-2.6-nano.jar!/" />
+      <root url="jar://C:/eclipse-java-mars-R-win32/jbullet.jar!/" />
+      <root url="jar://C:/eclipse-java-mars-R-win32/vecmath.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES />
