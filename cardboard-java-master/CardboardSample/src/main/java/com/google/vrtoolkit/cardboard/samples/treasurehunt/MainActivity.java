@@ -117,11 +117,12 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
   private float[] modelRectangle;
 
   private int score = 0;
-  private float objectDistance = 12f;
+  private float objectDistance = -70.0f;
   private float floorDepth = 20f;
-  private float f= 0.0f;
-  private float g = 0;
+  private float mAddLook = 0.0f;
+  private float g = 0.0f;
   private int i = 0;
+  private boolean flags = false;
   private Vibrator vibrator;
   private CardboardOverlayView overlayView;
 
@@ -343,8 +344,9 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
 
     // Object first appears directly in front of user.
     Matrix.setIdentityM(modelCube, 0);
-    Matrix.translateM(modelCube, 0, 0, 0, -objectDistance-10.0f);
+    Matrix.translateM(modelCube, 0, 0, 0, objectDistance);
     //g += 1.0f;
+    Log.w("onetimes","aaa");
  //   Matrix.setIdentityM(modelRectangle, 0);
   //  Matrix.translateM(modelRectangle, 0, 0, 0,  -objectDistance);
 
@@ -388,8 +390,20 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
   public void onNewFrame(HeadTransform headTransform) {
     // Build the Model part of the ModelView matrix.
     //回転っぽい
-    Matrix.rotateM(modelCube, 0, TIME_DELTA, 0.5f, 0.5f, 1.0f);
-
+    Matrix.rotateM(modelCube, 0, TIME_DELTA, 0.5f, 0.5f + g, 1.0f);
+    Matrix.setIdentityM(modelCube, 0);
+    Matrix.translateM(modelCube, 0, 0, 0, objectDistance+g);
+    /*if(flags == true) {
+    Matrix.translateM(modelCube, 0, 0, 0, objectDistance);
+      g = g + 0.1f;
+      try{
+        Thread.sleep(30); //3000ミリ秒Sleepする
+        flags = false;
+      }catch(InterruptedException e){}
+    }
+    flags = true;*/
+    g = g + 0.1f;
+    Log.w("onetimes","bbb");
     /*
     Build the camera matrix and apply it to the ModelView.
     ここっぽいけど値入れると怒られる。
@@ -398,14 +412,14 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
     CAMERA_Zで動く。＋が後ろ向き
     ビュー変換行列を作成？
     */
-    CAMERA_ZZ = CAMERA_Z - f;
+    CAMERA_ZZ = CAMERA_Z -mAddLook ;
     if(CAMERA_ZZ < -199.0f){
       CAMERA_ZZ = -199.0f;
-      Matrix.setLookAtM(camera, 0, 0.0f, 0.0f, CAMERA_ZZ, 0.0f, 0.0f, 0.0f-f, 0.0f, 8.0f, 0.0f);
+      Matrix.setLookAtM(camera, 0, 0.0f, 0.0f, CAMERA_ZZ, 0.0f, 0.0f, 0.0f-mAddLook, 0.0f, 8.0f, 0.0f);
     }
     //Matrix.translateM(modelCube, 0, 0, 0, -objectDistance-100+g);
-    Matrix.setLookAtM(camera, 0, 0.0f, 0.0f, CAMERA_Z, 0.0f, 0.0f, 0.0f, 0.0f, 8.0f, 0.0f);
-    f += 0.0f;
+    Matrix.setLookAtM(camera, 0, 0.0f, 0.0f, CAMERA_ZZ, 0.0f, 0.0f, 0.0f-mAddLook, 0.0f, 8.0f, 0.0f);
+    mAddLook += 0.1f;
     //g += 1.0f;
     headTransform.getHeadView(headView, 0);
 
@@ -426,7 +440,7 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
 
     checkGLError("colorParam");
 
-    i += 1;
+
     // Apply the eye transformation to the camera.
   	//ユーザが見ている方向にあわせて視点を移動する
     Matrix.multiplyMM(view, 0, eye.getEyeView(), 0, camera, 0);
@@ -457,6 +471,7 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
 
   @Override
   public void onFinishFrame(Viewport viewport) {
+
   }
 
   /**
@@ -554,9 +569,9 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
   @Override
   public void onCardboardTrigger() {
     Log.i(TAG, "onCardboardTrigger");
-    g += 0.1f;
-    Matrix.translateM(modelCube, 0, 0, 0, -objectDistance-g);
 
+    //Matrix.translateM(modelCube, 0, 0, 0, -objectDistance-g);
+    //g += 0.05f;
     //Matrix.setLookAtM(camera, 0, 0.0f, 0.0f, CAMERA_Z, 0.0f, 0.0f, 0.0f, 0.0f, 8.0f, 0.0f);
 
     if (isLookingAtObject()) {
