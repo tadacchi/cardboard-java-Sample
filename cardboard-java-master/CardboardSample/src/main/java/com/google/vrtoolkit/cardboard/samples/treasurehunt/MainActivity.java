@@ -113,18 +113,21 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
   private float[] modelViewProjection;
   private float[] modelView;
   private float[] modelFloor;
-
+  private float[] mAtEye;
   private float[] modelRectangle;
 
   private int score = 0;
   private float objectDistance = -70.0f;
   private float floorDepth = 20f;
   private float mAddLook = 0.0f;
-  private float g = 0.0f;
-  private int i = 0;
-  private boolean flags = false;
+  private float mAddCube = 0.0f;
   private Vibrator vibrator;
   private CardboardOverlayView overlayView;
+  private float mAtEyeX = 0.0f;
+  private float mAtEyeY = 0.0f;
+  private float mAtEyeZ = 0.0f;
+  private float mAtEyeXX = 0.0f;
+  private float mAtEyeZZ = 0.0f;
 
   /**
    * Converts a raw text file, saved as a resource, into an OpenGL ES shader.
@@ -198,6 +201,7 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
     modelView = new float[16];
     modelFloor = new float[16];
     headView = new float[16];
+    mAtEye = new float[16];
     vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
 
 
@@ -390,36 +394,28 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
   public void onNewFrame(HeadTransform headTransform) {
     // Build the Model part of the ModelView matrix.
     //回転っぽい
-    Matrix.rotateM(modelCube, 0, TIME_DELTA, 0.5f, 0.5f + g, 1.0f);
+    Matrix.rotateM(modelCube, 0, TIME_DELTA, 0.5f, 0.5f + mAddCube, 1.0f);
     Matrix.setIdentityM(modelCube, 0);
-    Matrix.translateM(modelCube, 0, 0, 0, objectDistance+g);
-    /*if(flags == true) {
-    Matrix.translateM(modelCube, 0, 0, 0, objectDistance);
-      g = g + 0.1f;
-      try{
-        Thread.sleep(30); //3000ミリ秒Sleepする
-        flags = false;
-      }catch(InterruptedException e){}
-    }
-    flags = true;*/
-    g = g + 0.1f;
-    Log.w("onetimes","bbb");
+    Matrix.translateM(modelCube, 0, 0, 0, objectDistance + mAddCube);
+
+    mAddCube = mAddCube + 0.f;
+
     /*
     Build the camera matrix and apply it to the ModelView.
-    ここっぽいけど値入れると怒られる。
-    y軸なら動かせた。x軸なぜ動かない…。
-    とんでもなく計算がめんどくさい。位置ずらすと視界の中心点もずれる。
     CAMERA_Zで動く。＋が後ろ向き
     ビュー変換行列を作成？
     */
-    CAMERA_ZZ = CAMERA_Z -mAddLook ;
+    CAMERA_ZZ = CAMERA_Z -mAddLook;
     if(CAMERA_ZZ < -199.0f){
       CAMERA_ZZ = -199.0f;
       Matrix.setLookAtM(camera, 0, 0.0f, 0.0f, CAMERA_ZZ, 0.0f, 0.0f, 0.0f-mAddLook, 0.0f, 8.0f, 0.0f);
+      vibrator.vibrate(10);
     }
     //Matrix.translateM(modelCube, 0, 0, 0, -objectDistance-100+g);
-    Matrix.setLookAtM(camera, 0, 0.0f, 0.0f, CAMERA_ZZ, 0.0f, 0.0f, 0.0f-mAddLook, 0.0f, 8.0f, 0.0f);
-    mAddLook += 0.1f;
+    mAtEyeXX = mAtEyeX + 0.1f;
+    mAtEyeZZ = mAtEyeZ + 0.1f;
+    Matrix.setLookAtM(camera, 0, 0.0f+mAtEyeXX, 0.0f, CAMERA_ZZ+mAtEyeZZ, 0.0f, 0.0f, 0.0f, 0.0f, 8.0f, 0.0f);
+    mAddLook += 0.0f;
     //g += 1.0f;
     headTransform.getHeadView(headView, 0);
 
@@ -444,6 +440,10 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
     // Apply the eye transformation to the camera.
   	//ユーザが見ている方向にあわせて視点を移動する
     Matrix.multiplyMM(view, 0, eye.getEyeView(), 0, camera, 0);
+    mAtEye = eye.getEyeView();
+    mAtEyeX = mAtEye[8];
+    mAtEyeY = mAtEye[9];
+    mAtEyeZ = mAtEye[10];
 
     // Set the position of the light
     Matrix.multiplyMV(lightPosInEyeSpace, 0, view, 0, LIGHT_POS_IN_WORLD_SPACE, 0);
@@ -457,7 +457,7 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
 
     //// drawRectangle();
     drawCube();
-    //これで出現すれば良いけど…
+
    // drawRectangle();
 
     // Set modelView for the floor, so we draw floor in the correct location
@@ -569,10 +569,6 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
   @Override
   public void onCardboardTrigger() {
     Log.i(TAG, "onCardboardTrigger");
-
-    //Matrix.translateM(modelCube, 0, 0, 0, -objectDistance-g);
-    //g += 0.05f;
-    //Matrix.setLookAtM(camera, 0, 0.0f, 0.0f, CAMERA_Z, 0.0f, 0.0f, 0.0f, 0.0f, 8.0f, 0.0f);
 
     if (isLookingAtObject()) {
       score++;
