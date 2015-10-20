@@ -56,6 +56,7 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
   private static final float Z_FAR = 100.0f;
 
   private static float CAMERA_Z = 0.01f;
+  private static float CAMERA_X = 0.01f;
   private static final float TIME_DELTA = 0.3f;
   private static float CAMERA_ZZ = 1.0f;
   private static final float YAW_LIMIT = 0.12f;
@@ -131,7 +132,8 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
   private int mNumVertices;
   private int mNumber;
   private boolean mFlag = false;
-  private float EyePointer = 0.0f;
+  private float EyePointerZ = 0.0f;
+  private float EyePointerX = 0.0f;
   /*
    * Converts a raw text file, saved as a resource, into an OpenGL ES shader.
    *
@@ -394,34 +396,36 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
     ビュー変換行列を作成？
     */
 
-      EyePointer = headView[10] / 10;
-    //if(EyePointer < 0) {
-      CAMERA_ZZ = CAMERA_Z - EyePointer;
-      CAMERA_Z = CAMERA_Z - EyePointer;
-    /*}
+      EyePointerZ = headView[10] / 10;
+      EyePointerX = headView[8] / 10;
+      CAMERA_X = CAMERA_X - EyePointerX;
+    if(EyePointerZ < 0) {
+      CAMERA_ZZ = CAMERA_Z + EyePointerZ;
+      CAMERA_Z = CAMERA_Z + EyePointerZ;
+    }
     else{
-      CAMERA_ZZ = CAMERA_Z + EyePointer;
-      CAMERA_Z = CAMERA_Z + EyePointer;
-    }*/
+      CAMERA_ZZ = CAMERA_Z + EyePointerZ;
+      CAMERA_Z = CAMERA_Z + EyePointerZ;
+    }
     if (mFlag){
       //vibrator.vibrate(500);
       mFlag = false;
     }
     if (CAMERA_ZZ < -199.0f) {
       CAMERA_ZZ = -199.0f;
-      Matrix.setLookAtM(camera, 0, 0.0f, 0.0f, CAMERA_ZZ, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
+      Matrix.setLookAtM(camera, 0, CAMERA_X, 0.0f, CAMERA_ZZ, 0.0f, 0.0f, 200.0f, 0.0f, 1.0f, 0.0f);
 
     }
     //Matrix.translateM(modelCube, 0, 0, 0, -objectDistance-100+g);
 
-    Matrix.setLookAtM(camera, 0, 0.0f, 0.0f, CAMERA_ZZ, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
+    Matrix.setLookAtM(camera, 0, CAMERA_X, 0.0f, CAMERA_ZZ, 0.0f, 0.0f, 200.0f, 0.0f, 1.0f, 0.0f);
     if (mNumber == 1){
       mAddLook += 0.1f;
   }
     if (mNumber ==2){
       mAddLook += 0.0f;
     }
-    System.out.println(CAMERA_ZZ);
+    System.out.println(headView[10]);
     if (-198.0f > CAMERA_ZZ && CAMERA_ZZ > -198.9f){
       mFlag = true;
     }
