@@ -55,9 +55,9 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
   private static final float Z_NEAR = 0.1f;
   private static final float Z_FAR = 100.0f;
 
-  private static final float CAMERA_Z = 0.01f;
+  private static float CAMERA_Z = 0.01f;
   private static final float TIME_DELTA = 0.3f;
-  private static float CAMERA_ZZ = 0.00f;
+  private static float CAMERA_ZZ = 1.0f;
   private static final float YAW_LIMIT = 0.12f;
   private static final float PITCH_LIMIT = 0.12f;
 
@@ -122,7 +122,7 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
   private float[] modelRectangle;
 
   private int score = 0;
-  private float objectDistance = -70.0f;
+  private float objectDistance = -10.0f;
   private float floorDepth = 20f;
   private float mAddLook = 0.0f;
   private float mAddCube = 0.0f;
@@ -131,6 +131,7 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
   private int mNumVertices;
   private int mNumber;
   private boolean mFlag = false;
+  private float EyePointer = 0.0f;
   /*
    * Converts a raw text file, saved as a resource, into an OpenGL ES shader.
    *
@@ -338,7 +339,7 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
     Matrix.setIdentityM(modelCube, 0);
     Matrix.translateM(modelCube, 0, 0, 0, objectDistance);
     //g += 1.0f;
-    Log.w("onetimes","aaa");
+
 
 
     Matrix.setIdentityM(modelFloor, 0);
@@ -392,7 +393,16 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
     CAMERA_Zで動く。＋が後ろ向き
     ビュー変換行列を作成？
     */
-    CAMERA_ZZ = CAMERA_Z - mAddLook;
+
+      EyePointer = headView[10] / 10;
+    //if(EyePointer < 0) {
+      CAMERA_ZZ = CAMERA_Z - EyePointer;
+      CAMERA_Z = CAMERA_Z - EyePointer;
+    /*}
+    else{
+      CAMERA_ZZ = CAMERA_Z + EyePointer;
+      CAMERA_Z = CAMERA_Z + EyePointer;
+    }*/
     if (mFlag){
       //vibrator.vibrate(500);
       mFlag = false;
@@ -404,12 +414,12 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
     }
     //Matrix.translateM(modelCube, 0, 0, 0, -objectDistance-100+g);
 
-    Matrix.setLookAtM(camera, 0, 0.0f, 0.0f, CAMERA_ZZ, 0.0f, 0.0f, 01.0f, 0.0f, 1.0f, 0.0f);
+    Matrix.setLookAtM(camera, 0, 0.0f, 0.0f, CAMERA_ZZ, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
     if (mNumber == 1){
       mAddLook += 0.1f;
   }
     if (mNumber ==2){
-      mAddLook += 0.2f;
+      mAddLook += 0.0f;
     }
     System.out.println(CAMERA_ZZ);
     if (-198.0f > CAMERA_ZZ && CAMERA_ZZ > -198.9f){
@@ -560,14 +570,14 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
 
     if (isLookingAtObject()) {
       score++;
-      overlayView.show3DToast("Found it! Look around for another one.\nScore = " + score);
+     // overlayView.show3DToast("Found it! Look around for another one.\nScore = " + score);
       hideObject();
     } else {
-      overlayView.show3DToast("Look around to find the object!");
+      //overlayView.show3DToast("Look around to find the object!");
     }
 
     // Always give user feedback.
-    vibrator.vibrate(50);
+    //vibrator.vibrate(50);
   }
 
   /**
