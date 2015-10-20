@@ -23,8 +23,12 @@ import com.google.vrtoolkit.cardboard.HeadTransform;
 import com.google.vrtoolkit.cardboard.Viewport;
 
 import android.content.Context;
+import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.hardware.camera2.params.MeteringRectangle;
 import android.opengl.GLES20;
+import android.opengl.GLUtils;
 import android.opengl.Matrix;
 import android.os.Bundle;
 import android.os.Vibrator;
@@ -39,6 +43,7 @@ import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 
 import javax.microedition.khronos.egl.EGLConfig;
+import javax.microedition.khronos.opengles.GL10;
 
 /**
  * A Cardboard sample application.
@@ -123,13 +128,10 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
   private float mAddCube = 0.0f;
   private Vibrator vibrator;
   private CardboardOverlayView overlayView;
-  private float mAtEyeX = 0.0f;
-  private float mAtEyeY = 0.0f;
-  private float mAtEyeZ = 0.0f;
-  private float mAtEyeXX = 0.0f;
-  private float mAtEyeZZ = 0.0f;
-
-  /**
+  private int mNumVertices;
+  private int mNumber;
+  private boolean mFlag = false;
+  /*
    * Converts a raw text file, saved as a resource, into an OpenGL ES shader.
    *
    * @param type The type of shader we will be creating.
@@ -184,12 +186,15 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
+    Intent intent = getIntent();
+    mNumber = intent.getIntExtra("Number", 0);
 
     setContentView(R.layout.common_ui);
     CardboardView cardboardView = (CardboardView) findViewById(R.id.cardboard_view);
     cardboardView.setRestoreGLStateEnabled(false);
     cardboardView.setRenderer(this);
     setCardboardView(cardboardView);
+
 
     modelCube = new float[16];
 
@@ -233,31 +238,21 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
   public void onSurfaceCreated(EGLConfig config) {
     Log.i(TAG, "onSurfaceCreated");
     GLES20.glClearColor(0.1f, 0.1f, 0.1f, 0.5f); // Dark background so text shows up well.
-
     ByteBuffer bbVertices = ByteBuffer.allocateDirect(WorldLayoutData.CUBE_COORDS.length * 4);
     bbVertices.order(ByteOrder.nativeOrder());
     cubeVertices = bbVertices.asFloatBuffer();
     cubeVertices.put(WorldLayoutData.CUBE_COORDS);
     cubeVertices.position(0);
-    // 異なる対象物のデータ
-    /*ByteBuffer rrVertices = ByteBuffer.allocateDirect(WorldLayoutData.Rectangle.length * 4);
-    rrVertices.order(ByteOrder.nativeOrder());
-    RectangleVertices = rrVertices.asFloatBuffer();
-    RectangleVertices.put(WorldLayoutData.Rectangle);
-    RectangleVertices.position(2);
-    */
+
+
     ByteBuffer bbColors = ByteBuffer.allocateDirect(WorldLayoutData.CUBE_COLORS.length * 4);
     bbColors.order(ByteOrder.nativeOrder());
     cubeColors = bbColors.asFloatBuffer();
     cubeColors.put(WorldLayoutData.CUBE_COLORS);
     cubeColors.position(0);
 
-    /*ByteBuffer rrColors = ByteBuffer.allocateDirect(WorldLayoutData.CUBE_COLORS.length * 4);
-    rrColors.order(ByteOrder.nativeOrder());
-    RectangleColors = rrColors.asFloatBuffer();
-    RectangleColors.put(WorldLayoutData.Rectangle_COLORS);
-    RectangleColors.position(0);
-    */
+
+
     ByteBuffer bbFoundColors = ByteBuffer.allocateDirect(WorldLayoutData.CUBE_FOUND_COLORS.length * 4);
     bbFoundColors.order(ByteOrder.nativeOrder());
     cubeFoundColors = bbFoundColors.asFloatBuffer();
@@ -269,13 +264,6 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
     cubeNormals = bbNormals.asFloatBuffer();
     cubeNormals.put(WorldLayoutData.CUBE_NORMALS);
     cubeNormals.position(0);
-
-    /*ByteBuffer rrNormals = ByteBuffer.allocateDirect(WorldLayoutData.CUBE_NORMALS.length * 4);
-    rrNormals.order(ByteOrder.nativeOrder());
-    RectangleNormals = rrNormals.asFloatBuffer();
-    RectangleNormals.put(WorldLayoutData.Rectangle_NORMALS);
-    RectangleNormals.position(0);
-    */
     // make a floor
   	//床
     ByteBuffer bbFloorVertices = ByteBuffer.allocateDirect(WorldLayoutData.FLOOR_COORDS.length * 4);
@@ -351,8 +339,7 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
     Matrix.translateM(modelCube, 0, 0, 0, objectDistance);
     //g += 1.0f;
     Log.w("onetimes","aaa");
- //   Matrix.setIdentityM(modelRectangle, 0);
-  //  Matrix.translateM(modelRectangle, 0, 0, 0,  -objectDistance);
+
 
     Matrix.setIdentityM(modelFloor, 0);
     Matrix.translateM(modelFloor, 0, 0, -floorDepth, 0); // Floor appears below user.
@@ -405,17 +392,29 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
     CAMERA_Zで動く。＋が後ろ向き
     ビュー変換行列を作成？
     */
-    CAMERA_ZZ = CAMERA_Z -mAddLook;
-    if(CAMERA_ZZ < -199.0f){
+    CAMERA_ZZ = CAMERA_Z - mAddLook;
+    if (mFlag){
+      //vibrator.vibrate(500);
+      mFlag = false;
+    }
+    if (CAMERA_ZZ < -199.0f) {
       CAMERA_ZZ = -199.0f;
-      Matrix.setLookAtM(camera, 0, 0.0f, 0.0f, CAMERA_ZZ, 0.0f, 0.0f, 0.0f-mAddLook, 0.0f, 8.0f, 0.0f);
-      vibrator.vibrate(10);
+      Matrix.setLookAtM(camera, 0, 0.0f, 0.0f, CAMERA_ZZ, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
+
     }
     //Matrix.translateM(modelCube, 0, 0, 0, -objectDistance-100+g);
-    mAtEyeXX = mAtEyeX + 0.1f;
-    mAtEyeZZ = mAtEyeZ + 0.1f;
-    Matrix.setLookAtM(camera, 0, 0.0f+mAtEyeXX, 0.0f, CAMERA_ZZ+mAtEyeZZ, 0.0f, 0.0f, 0.0f, 0.0f, 8.0f, 0.0f);
-    mAddLook += 0.0f;
+
+    Matrix.setLookAtM(camera, 0, 0.0f, 0.0f, CAMERA_ZZ, 0.0f, 0.0f, 01.0f, 0.0f, 1.0f, 0.0f);
+    if (mNumber == 1){
+      mAddLook += 0.1f;
+  }
+    if (mNumber ==2){
+      mAddLook += 0.2f;
+    }
+    System.out.println(CAMERA_ZZ);
+    if (-198.0f > CAMERA_ZZ && CAMERA_ZZ > -198.9f){
+      mFlag = true;
+    }
     //g += 1.0f;
     headTransform.getHeadView(headView, 0);
 
@@ -440,10 +439,7 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
     // Apply the eye transformation to the camera.
   	//ユーザが見ている方向にあわせて視点を移動する
     Matrix.multiplyMM(view, 0, eye.getEyeView(), 0, camera, 0);
-    mAtEye = eye.getEyeView();
-    mAtEyeX = mAtEye[8];
-    mAtEyeY = mAtEye[9];
-    mAtEyeZ = mAtEye[10];
+    //mAtEye = eye.getEyeView();
 
     // Set the position of the light
     Matrix.multiplyMV(lightPosInEyeSpace, 0, view, 0, LIGHT_POS_IN_WORLD_SPACE, 0);
@@ -455,10 +451,10 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
     Matrix.multiplyMM(modelViewProjection, 0, perspective, 0, modelView, 0);
    // Matrix.multiplyMM(modelView, 0, view, 0, modelRectangle, 0);
 
-    //// drawRectangle();
+
     drawCube();
 
-   // drawRectangle();
+
 
     // Set modelView for the floor, so we draw floor in the correct location
   	//正しい場所にモデルビューをセット！
@@ -504,39 +500,31 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
     GLES20.glVertexAttribPointer(cubeColorParam, 4, GLES20.GL_FLOAT, false, 0,
             isLookingAtObject() ? cubeFoundColors : cubeColors);
 
-    GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 18);
-    checkGLError("Drawing cube");
-
-  }
-/*
-  public void drawRectangle(){
-    GLES20.glUseProgram(rectangleProgram);
-
-    GLES20.glUniform3fv(rectangleLightPosParam, 1, lightPosInEyeSpace, 0);
-
-    // Set the Model in the shader, used to calculate lighting
-  //  GLES20.glUniformMatrix4fv(rectangleModelParam, 1, false, modelCube, 0);
-
-    // Set the ModelView in the shader, used to calculate lighting
-   // GLES20.glUniformMatrix4fv(rectangleModelViewParam, 1, false, modelView, 0);
-
-    // Set the position of the cube
-    //GLES20.glVertexAttribPointer(rectanglePositionParam, COORDS_PER_VERTEX, GLES20.GL_FLOAT,
-     //       false, 0, RectangleVertices);
-
-    // Set the ModelViewProjection matrix in the shader.
-   // GLES20.glUniformMatrix4fv(rectangleModelViewProjectionParam, 1, false, modelViewProjection, 0);
-
-    // Set the normal positions of the cube, again for shading
-    //シェーダってやつ？
-   // GLES20.glVertexAttribPointer(rectangleNormalParam, 6, GLES20.GL_FLOAT, false, 0, RectangleNormals);
-   // GLES20.glVertexAttribPointer(rectangleColorParam, 4, GLES20.GL_FLOAT, false, 0,
-     //       isLookingAtObject() ? rectangleFoundColors : rectangleColors);
-
     GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 36);
     checkGLError("Drawing cube");
+
   }
-*/  /**
+
+  private void initTextures(int program) {
+    //画像ファイルを読み込む
+    Bitmap image = BitmapFactory.decodeResource(getResources(), R.drawable.blue_sky);
+
+    int[] textures = new int[1];
+    GLES20.glGenTextures(1, textures, 0);
+
+    int u_Sampler = GLES20.glGetUniformLocation(program, "u_Sampler");
+
+    GLES20.glActiveTexture(GLES20.GL_TEXTURE);
+
+    GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textures[0]);
+
+    GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR);
+
+    GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, image, 0);
+
+    GLES20.glUniform1f(u_Sampler, 0);
+  }
+ /**
    * Draw the floor.
    *三角形に床を描画していく。
    * <p>This feeds in data for the floor into the shader. Note that this doesn't feed in data about

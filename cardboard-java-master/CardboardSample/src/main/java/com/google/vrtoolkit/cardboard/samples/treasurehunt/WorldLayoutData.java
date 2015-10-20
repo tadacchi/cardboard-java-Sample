@@ -21,7 +21,7 @@ package com.google.vrtoolkit.cardboard.samples.treasurehunt;
  */
 
 public final class WorldLayoutData {
-/*
+
   public static final float[] CUBE_COORDS = new float[] {
       // Front face
       -1.0f, 1.0f, 1.0f,//1
@@ -71,7 +71,7 @@ public final class WorldLayoutData {
       -1.0f, -1.0f, 1.0f,
       -1.0f, -1.0f, -1.0f,
   };
-*/
+/*
   public static final float[] CUBE_COORDS = new float[]{
         0.f , 0.f , 3.0f ,     //0
         5.f , 5.f , 1.0f ,     //1
@@ -187,8 +187,8 @@ public final class WorldLayoutData {
             0.0f, -1.0f, 0.0f,
             0.0f, -1.0f, 0.0f,
             0.0f, -1.0f, 0.0f,
-    };
-  /*
+    };*/
+
   public static final float[] CUBE_COLORS = new float[] {
       // front, green
       0f, 0.5273f, 0.2656f, 1.0f,
@@ -338,7 +338,7 @@ public final class WorldLayoutData {
       0.0f, -1.0f, 0.0f,
       0.0f, -1.0f, 0.0f
   };
-*/
+
   public static final float[] FLOOR_COORDS = new float[] {
           200f, 0, -200f,
           -200f, 0, -200f,
