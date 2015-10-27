@@ -24,6 +24,7 @@ import com.google.vrtoolkit.cardboard.Viewport;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.AvoidXfermode;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.hardware.camera2.params.MeteringRectangle;
@@ -134,6 +135,8 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
   private boolean mFlag = false;
   private float EyePointerZ = 0.0f;
   private float EyePointerX = 0.0f;
+  private float Model_X = 1.0f;
+  private float Model_Z = 1.0f;
   /*
    * Converts a raw text file, saved as a resource, into an OpenGL ES shader.
    *
@@ -210,6 +213,7 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
     modelFloor = new float[16];
     headView = new float[16];
     mAtEye = new float[16];
+
     vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
 
 
@@ -338,8 +342,10 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
     checkGLError("Floor program params");
 
     // Object first appears directly in front of user.
+    float Model_X = (float) Math.random() * 180 + 90;
+    float Model_Z = (float) Math.random() * 180 + 90;
     Matrix.setIdentityM(modelCube, 0);
-    Matrix.translateM(modelCube, 0, 0, 0, objectDistance);
+    Matrix.translateM(modelCube, 0, Model_X, 0 , Model_Z);
     //g += 1.0f;
 
 
@@ -385,17 +391,14 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
     // Build the Model part of the ModelView matrix.
     //âÒì]Ç¡Ç€Ç¢
     Matrix.rotateM(modelCube, 0, TIME_DELTA, 0.5f, 0.5f + mAddCube, 1.0f);
-    Matrix.setIdentityM(modelCube, 0);
-    Matrix.translateM(modelCube, 0, 0, 0, objectDistance + mAddCube);
 
-    mAddCube = mAddCube + 0.f;
-
+    //Matrix.setIdentityM(modelCube, 0);
+    //Matrix.translateM(modelCube, 0, 0, 0, objectDistance + mAddCube);
     /*
     Build the camera matrix and apply it to the ModelView.
     CAMERA_ZÇ≈ìÆÇ≠ÅBÅ{Ç™å„ÇÎå¸Ç´
     ÉrÉÖÅ[ïœä∑çsóÒÇçÏê¨ÅH
     */
-
       EyePointerZ = headView[10] / 10;
       EyePointerX = headView[8] / 10;
       CAMERA_X = CAMERA_X - EyePointerX;
@@ -414,10 +417,9 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
     if (CAMERA_ZZ < -199.0f) {
       CAMERA_ZZ = -199.0f;
       Matrix.setLookAtM(camera, 0, CAMERA_X, 0.0f, CAMERA_ZZ, 0.0f, 0.0f, 200.0f, 0.0f, 1.0f, 0.0f);
-
     }
     //Matrix.translateM(modelCube, 0, 0, 0, -objectDistance-100+g);
-
+    System.out.println("X = "+ Model_X +"\nY = "+ 0 +"\nZ = "+ Model_Z);
     Matrix.setLookAtM(camera, 0, CAMERA_X, 0.0f, CAMERA_ZZ, 0.0f, 0.0f, 200.0f, 0.0f, 1.0f, 0.0f);
     if (mNumber == 1){
       mAddLook += 0.1f;
@@ -425,7 +427,7 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
     if (mNumber ==2){
       mAddLook += 0.0f;
     }
-    System.out.println(headView[10]);
+    //System.out.println(headView[10]);
     if (-198.0f > CAMERA_ZZ && CAMERA_ZZ > -198.9f){
       mFlag = true;
     }
@@ -553,11 +555,11 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
     GLES20.glUniformMatrix4fv(floorModelParam, 1, false, modelFloor, 0);
     GLES20.glUniformMatrix4fv(floorModelViewParam, 1, false, modelView, 0);
     GLES20.glUniformMatrix4fv(floorModelViewProjectionParam, 1, false,
-        modelViewProjection, 0);
+            modelViewProjection, 0);
     GLES20.glVertexAttribPointer(floorPositionParam, COORDS_PER_VERTEX, GLES20.GL_FLOAT,
-        false, 0, floorVertices);
+            false, 0, floorVertices);
     GLES20.glVertexAttribPointer(floorNormalParam, 3, GLES20.GL_FLOAT, false, 0,
-        floorNormals);
+            floorNormals);
     GLES20.glVertexAttribPointer(floorColorParam, 4, GLES20.GL_FLOAT, false, 0, floorColors);
 
     GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 6);
@@ -616,7 +618,32 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
     Matrix.setIdentityM(modelCube, 0);
     Matrix.translateM(modelCube, 0, posVec[0], newY, posVec[2]);
   }
+  private void RamdamXZ() {
+    float[] rotationMatrix = new float[16];
+    float[] posVec = new float[4];
 
+    // First rotate in XZ plane, between 90 and 270 deg away, and scale so that we vary
+    // the object's distance from the user.
+    //å©Ç¬ÇØÇΩå„ìØÇ∂éãäEì‡Ç…ÇÕèoåªÇµÇ»Ç¢ÇÊÇ§Ç…Ç∑ÇÈÅB
+    //â°90Åãèc270ÅãÇÃîÕàÕÇ©ÇÁîÚÇŒÇ∑
+
+    float angleXZ = (float) Math.random() * 180 + 90;
+    Matrix.setRotateM(rotationMatrix, 0, angleXZ, 0f, 1f, 0f);
+    float oldObjectDistance = objectDistance;
+    objectDistance = (float) Math.random() * 15 + 5;
+    float objectScalingFactor = objectDistance / oldObjectDistance;
+    Matrix.scaleM(rotationMatrix, 0, objectScalingFactor, objectScalingFactor,
+            objectScalingFactor);
+    Matrix.multiplyMV(posVec, 0, rotationMatrix, 0, modelCube, 12);
+
+    // Now get the up or down angle, between -20 and 20 degrees.
+    float angleY = (float) Math.random() * 80 - 40; // Angle in Y plane, between -40 and 40.
+    angleY = (float) Math.toRadians(angleY);
+    float newY = (float) Math.tan(angleY) * objectDistance;
+
+    //Matrix.setIdentityM(modelCube, 0);
+    //Matrix.translateM(modelCube, 0, posVec[0], newY, posVec[2]);
+  }
   /**
    * Check if user is looking at object by calculating where the object is in eye-space.
    *
