@@ -28,6 +28,7 @@ import android.graphics.AvoidXfermode;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.hardware.camera2.params.MeteringRectangle;
+import android.media.MediaActionSound;
 import android.opengl.GLES20;
 import android.opengl.GLUtils;
 import android.opengl.Matrix;
@@ -114,6 +115,7 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
   private int floorLightPosParam;
 
   private float[] modelCube;
+  private float[] modelCube1;
   private float[] camera;
   private float[] view;
   private float[] headView;
@@ -192,8 +194,8 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    Intent intent = getIntent();
-    mNumber = intent.getIntExtra("Number", 0);
+    //Intent intent = getIntent();
+    //mNumber = intent.getIntExtra("Number", 0);
 
     setContentView(R.layout.common_ui);
     CardboardView cardboardView = (CardboardView) findViewById(R.id.cardboard_view);
@@ -203,7 +205,7 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
 
 
     modelCube = new float[16];
-
+    modelCube1 = new float[16];
     modelRectangle = new float[16];
 
     camera = new float[16];
@@ -342,10 +344,14 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
     checkGLError("Floor program params");
 
     // Object first appears directly in front of user.
-    float Model_X = (float) Math.random() * 180 + 90;
-    float Model_Z = (float) Math.random() * 180 + 90;
+    //float Model_X = (float) Math.random() * 180 + 90;
+    //float Model_Z = (float) Math.random() * 180 + 90;
     Matrix.setIdentityM(modelCube, 0);
-    Matrix.translateM(modelCube, 0, Model_X, 0 , Model_Z);
+
+    //Matrix.translateM(modelCube, 0, Model_X, 0 , Model_Z);
+    Matrix.translateM(modelCube, 0, 0, 0, -objectDistance);
+
+    Matrix.translateM(modelCube1, 0, 0, 10.0f, 0);
     //g += 1.0f;
 
 
@@ -390,8 +396,9 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
   public void onNewFrame(HeadTransform headTransform) {
     // Build the Model part of the ModelView matrix.
     //回転っぽい
-    Matrix.rotateM(modelCube, 0, TIME_DELTA, 0.5f, 0.5f + mAddCube, 1.0f);
+    Matrix.rotateM(modelCube, 0, TIME_DELTA, 0.5f, 0.5f, 1.0f);
 
+    Matrix.translateM(modelCube1, 0, 0, 10.0f, 0);
     //Matrix.setIdentityM(modelCube, 0);
     //Matrix.translateM(modelCube, 0, 0, 0, objectDistance + mAddCube);
     /*
@@ -419,14 +426,8 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
       Matrix.setLookAtM(camera, 0, CAMERA_X, 0.0f, CAMERA_ZZ, 0.0f, 0.0f, 200.0f, 0.0f, 1.0f, 0.0f);
     }
     //Matrix.translateM(modelCube, 0, 0, 0, -objectDistance-100+g);
-    System.out.println("X = "+ Model_X +"\nY = "+ 0 +"\nZ = "+ Model_Z);
+    //System.out.println("X = "+ Model_X +"\nY = "+ 0 +"\nZ = "+ Model_Z);
     Matrix.setLookAtM(camera, 0, CAMERA_X, 0.0f, CAMERA_ZZ, 0.0f, 0.0f, 200.0f, 0.0f, 1.0f, 0.0f);
-    if (mNumber == 1){
-      mAddLook += 0.1f;
-  }
-    if (mNumber ==2){
-      mAddLook += 0.0f;
-    }
     //System.out.println(headView[10]);
     if (-198.0f > CAMERA_ZZ && CAMERA_ZZ > -198.9f){
       mFlag = true;
@@ -462,14 +463,24 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
     // Build the ModelView and ModelViewProjection matrices
     // for calculating cube position and light.
   	//キューブの位置や光を計算するためのModelViewとModelViewProjection行列を構築します。
+    Matrix.setIdentityM(modelCube, 0);
     float[] perspective = eye.getPerspective(Z_NEAR, Z_FAR);
+    Matrix.translateM(modelCube, 0, 0, 0, -objectDistance);
     Matrix.multiplyMM(modelView, 0, view, 0, modelCube, 0);
     Matrix.multiplyMM(modelViewProjection, 0, perspective, 0, modelView, 0);
-   // Matrix.multiplyMM(modelView, 0, view, 0, modelRectangle, 0);
-
-
     drawCube();
-
+    Matrix.translateM(modelCube, 0, 0, 10.0f, -objectDistance);
+    Matrix.multiplyMM(modelView, 0, view, 0, modelCube, 0);
+    Matrix.multiplyMM(modelViewProjection, 0, perspective, 0, modelView, 0);
+    drawCube();
+    //Matrix.multiplyMM(modelView, 0, view, 0, modelCube1, 0);
+    //Matrix.multiplyMM(modelViewProjection, 0, perspective, 0, modelView, 0);
+   // Matrix.multiplyMM(modelView, 0, view, 0, modelRectangle, 0);
+    //drawCube1();
+   // for(int i = 0; i < 16; i++){
+   //     //System.out.println(modelCube[i]);
+   //     System.out.println("番号:"+i+"値:"+modelCube1[i]);
+   // }
 
 
     // Set modelView for the floor, so we draw floor in the correct location
@@ -520,7 +531,35 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
     checkGLError("Drawing cube");
 
   }
+  public void drawCube1() {
 
+    GLES20.glUseProgram(cubeProgram);
+
+    GLES20.glUniform3fv(cubeLightPosParam, 1, lightPosInEyeSpace, 0);
+
+    // Set the Model in the shader, used to calculate lighting
+    GLES20.glUniformMatrix4fv(cubeModelParam, 1, false, modelCube1, 0);
+
+    // Set the ModelView in the shader, used to calculate lighting
+    GLES20.glUniformMatrix4fv(cubeModelViewParam, 1, false, modelView, 0);
+
+    // Set the position of the cube
+    GLES20.glVertexAttribPointer(cubePositionParam, COORDS_PER_VERTEX, GLES20.GL_FLOAT,
+            false, 0, cubeVertices);
+
+    // Set the ModelViewProjection matrix in the shader.
+    GLES20.glUniformMatrix4fv(cubeModelViewProjectionParam, 1, false, modelViewProjection, 0);
+
+    // Set the normal positions of the cube, again for shading
+    //シェーダってやつ？
+    GLES20.glVertexAttribPointer(cubeNormalParam, 3, GLES20.GL_FLOAT, false, 0, cubeNormals);
+    GLES20.glVertexAttribPointer(cubeColorParam, 4, GLES20.GL_FLOAT, false, 0,
+            isLookingAtObject() ? cubeFoundColors : cubeColors);
+
+    GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 36);
+    checkGLError("Drawing cube");
+
+  }
   private void initTextures(int program) {
     //画像ファイルを読み込む
     Bitmap image = BitmapFactory.decodeResource(getResources(), R.drawable.blue_sky);
