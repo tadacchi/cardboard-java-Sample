@@ -38,5 +38,8 @@ public class CubeDataClass {
         return Object_Z;
     }
 
+    public void setCubeData(float mCubeData_X , float mCubeData_Z){
+
+    }
 }
 
