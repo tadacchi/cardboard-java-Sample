@@ -340,12 +340,12 @@ public final class WorldLayoutData {
   };
 
   public static final float[] FLOOR_COORDS = new float[] {
-          200f, 0, -200f,
-          -200f, 0, -200f,
-          -200f, 0, 200f,
-          200f, 0, -200f,
-          -200f, 0, 200f,
-          200f, 0, 200f,
+          160f, 0, -160f,
+          -160f, 0, -160f,
+          -160f, 0, 160f,
+          160f, 0, -160f,
+          -160f, 0, 160f,
+          160f, 0, 160f,
   };
 
   public static final float[] FLOOR_NORMALS = new float[] {

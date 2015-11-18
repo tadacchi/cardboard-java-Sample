@@ -52,7 +52,7 @@ public class CardboardOverlayView extends LinearLayout {
 
     leftView = new CardboardOverlayEyeView(context, attrs);
     leftView.setLayoutParams(params);
-    addView(leftView);
+    //addView(leftView);
 
     rightView = new CardboardOverlayEyeView(context, attrs);
     rightView.setLayoutParams(params);

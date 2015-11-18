@@ -136,7 +136,8 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
   private float[] modelView;
   private float[] modelFloor;
   private float[] mAtEye;
-  private float[] modelRectangle;
+  private float[] mPerspective;
+
 
   private int score = 0;
   private int item;
@@ -233,6 +234,7 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
     modelFloor = new float[16];
     headView = new float[16];
     mAtEye = new float[16];
+    mPerspective = new float[16];
 
     vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
 
@@ -369,8 +371,8 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
     checkGLError("Floor program params");
 
     // Object first appears directly in front of user.
-    MODEL_X = (float) Math.random() * 10 + 20;
-    MODEL_Z = (float) Math.random() * 10 + 20;
+    MODEL_X = (float) Math.random() * 10 + 50;
+    MODEL_Z = (float) Math.random() * 10 + 50;
     Matrix.setIdentityM(modelCube, 0);
     Matrix.translateM(modelCube, 0, 0, 0, -objectDistance);
 
@@ -426,41 +428,35 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
     PositiveCatchObjectEye_Z = CAMERA_Z + 3.0f;
     NegativeCatchObjectEye_Z = CAMERA_Z - 3.0f;
 
-    float Wall_Z = 198.0f;
-    float Wall_X = 198.0f;
+    float Wall_Z = 150.0f;
+    float Wall_X = 150.0f;
 
-    boolean isObjectInView_X = NegativeCatchObjectEye_X < modelCube[12] && modelCube[12] < PositiveCatchObjectEye_X;
+    boolean PositiveObjectInView_X = CAMERA_X < modelCube[12] && modelCube[12] < PositiveCatchObjectEye_X;
+    boolean NegativeObjectInView_X = NegativeCatchObjectEye_X < modelCube[12] && modelCube[12] < CAMERA_X;
     boolean PositiveObjectInView_Z = CAMERA_Z < modelCube[14] && modelCube[14] < PositiveCatchObjectEye_Z;
     boolean NegativeObjectInView_Z = NegativeCatchObjectEye_Z < modelCube[14] && modelCube[14] < CAMERA_Z;
     boolean PositiveWall_Z = CAMERA_Z < Wall_Z && Wall_Z < PositiveCatchObjectEye_Z;
     boolean NegativeWall_Z = NegativeCatchObjectEye_Z < -Wall_Z && -Wall_Z < CAMERA_Z;
-    boolean PositiveWall_X =  NegativeCatchObjectEye_X < Wall_X  && Wall_X < PositiveCatchObjectEye_X;
-    boolean NegativeWall_X =  NegativeCatchObjectEye_X < Wall_X  && Wall_X < PositiveCatchObjectEye_X;
+    boolean PositiveWall_X =  CAMERA_X < Wall_X  && Wall_X < PositiveCatchObjectEye_X;
+    boolean NegativeWall_X =  NegativeCatchObjectEye_X < -Wall_X  && -Wall_X < CAMERA_X;
+    boolean culcX = (EyePointerX < 0) ? PositiveObjectInView_X : NegativeObjectInView_X;
     boolean culcZ = (EyePointerZ > 0) ? PositiveObjectInView_Z : NegativeObjectInView_Z;
-    boolean BumpWall = (EyePointerZ > 0) ? PositiveWall_Z : NegativeWall_Z;
+    boolean BumpWallZ = (EyePointerZ > 0) ? PositiveWall_Z : NegativeWall_Z;
+    boolean BumpWallX = (EyePointerX < 0) ? PositiveWall_X : NegativeWall_X;
 
-    if (culcZ && isObjectInView_X){
+    if ((culcZ && culcX) || (BumpWallX || BumpWallZ)){
       CAMERA_Z = Z_info;
       CAMERA_X = CAMERA_X;
      }
-    else if(BumpWall && ){
-
-    }
     else {
       CAMERA_Y = -floorDepth + 5.0f;
       CAMERA_X = CAMERA_X - EyePointerX;
       CAMERA_Z = Z_info + EyePointerZ;
       Z_info = Z_info + EyePointerZ;
       }
-
-    /*if (CAMERA_ZZ < -199.0f) {
-      CAMERA_ZZ = -199.0f;
-      Matrix.setLookAtM(camera, 0, CAMERA_X, CAMERA_Y, CAMERA_Z, 0.0f, 0.0f, 200.0f, 0.0f, 1.0f, 0.0f);
-    }*/
     
     Matrix.setLookAtM(camera, 0, CAMERA_X, CAMERA_Y , CAMERA_Z, 0.0f, 0.0f, 200.0f, 0.0f, 1.0f, 0.0f);
-
-
+    System.out.println(" X= "+headView[8]+" Z= "+ headView[10]);
     headTransform.getHeadView(headView, 0);
 
     checkGLError("onReadyToDraw");
@@ -494,10 +490,8 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
 
 
     DrawHuman(eye,MODEL_X,MODEL_Z);
-    System.out.println("X1="+modelCube[0]+"Y="+ modelCube[1]+"Z="+ modelCube[2]+"0="+modelCube[3]);
-    System.out.println("X2="+modelCube[4]+"Y="+ modelCube[5]+"Z="+ modelCube[6]+"0="+modelCube[7]);
-    System.out.println("X3="+modelCube[8]+"Y="+ modelCube[9]+"Z="+ modelCube[10]+"0="+modelCube[11]);
-    System.out.println("X4="+modelCube[12]+"Y="+ modelCube[13]+"Z="+ modelCube[14]+"0="+modelCube[15]);
+
+    //System.out.println("X="+CAMERA_X+"Y="+ CAMERA_Y+"Z="+ CAMERA_Z+"0="+modelCube[15]);
 
     // Set modelView for the floor, so we draw floor in the correct location
   	//正しい場所にモデルビューをセット！
@@ -511,16 +505,16 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
 
     
     public void DrawHuman(Eye eye, float MODEL_X, float MODEL_Z){
-    float[] perspective = eye.getPerspective(Z_NEAR, Z_FAR);
+    mPerspective = eye.getPerspective(Z_NEAR, Z_FAR);
     //車体
     Matrix.setIdentityM(modelCube, 0);
     MODEL_Y = -floorDepth;
     Matrix.translateM(modelCube, 0, MODEL_X, MODEL_Y, -MODEL_Z);
     Matrix.scaleM(modelCube, 0, 1.5f, 0.5f, 1.5f);
     Matrix.multiplyMM(modelView, 0, view, 0, modelCube, 0);
-    Matrix.multiplyMM(modelViewProjection, 0, perspective, 0, modelView, 0);
+    Matrix.multiplyMM(modelViewProjection, 0, mPerspective, 0, modelView, 0);
     drawCube();
-
+    drawObject();
     MODEL_Y = MODEL_Y + 0.5f;
 
     //胴体
@@ -528,7 +522,7 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
     Matrix.translateM(modelCube1, 0, MODEL_X, MODEL_Y, -MODEL_Z);
     Matrix.scaleM(modelCube1, 0, 0.75f, 1.0f, 0.75f);
     Matrix.multiplyMM(modelView, 0, view, 0, modelCube1, 0);
-    Matrix.multiplyMM(modelViewProjection, 0, perspective, 0, modelView, 0);
+    Matrix.multiplyMM(modelViewProjection, 0, mPerspective, 0, modelView, 0);
     drawCube1();
         
 
@@ -538,7 +532,7 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
     Matrix.translateM(modelCube2, 0, MODEL_X, MODEL_Y, -MODEL_Z);
     Matrix.scaleM(modelCube2, 0, 0.1f, 0.1f, 0.1f);
     Matrix.multiplyMM(modelView, 0, view, 0, modelCube2, 0);
-    Matrix.multiplyMM(modelViewProjection, 0, perspective, 0, modelView, 0);
+    Matrix.multiplyMM(modelViewProjection, 0, mPerspective, 0, modelView, 0);
     drawCube2();
         
 
@@ -547,10 +541,10 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
     Matrix.translateM(modelCube3, 0, MODEL_X, MODEL_Y, -MODEL_Z);
     Matrix.scaleM(modelCube3, 0, 0.5f, 1.0f, 0.5f);
     Matrix.multiplyMM(modelView, 0, view, 0, modelCube3, 0);
-    Matrix.multiplyMM(modelViewProjection, 0, perspective, 0, modelView, 0);
+    Matrix.multiplyMM(modelViewProjection, 0, mPerspective, 0, modelView, 0);
     drawCube3();
     Matrix.multiplyMM(modelView, 0, view, 0, modelFloor, 0);
-    Matrix.multiplyMM(modelViewProjection, 0, perspective, 0,
+    Matrix.multiplyMM(modelViewProjection, 0, mPerspective, 0,
               modelView, 0);
     drawFloor();
     }
@@ -620,7 +614,7 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
 
     createRigidBody(motionState);
     // Set the normal positions of the cube, again for shading
-    //シェーダってやつ？
+    //シェーダってやつ
     GLES20.glVertexAttribPointer(cubeNormalParam, 3, GLES20.GL_FLOAT, false, 0, cubeNormals);
     GLES20.glVertexAttribPointer(cubeColorParam, 4, GLES20.GL_FLOAT, false, 0,
             isTouchingAtObject() ? cubeFoundColors : cubeColors);
@@ -629,6 +623,23 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
     checkGLError("Drawing cube");
 
   }
+  public void drawObject(){
+    Matrix.setIdentityM(modelCube, 0);
+    //MODEL_Y = -100.0f;
+    Matrix.translateM(modelCube, 0, 20.0f, -50.0f, -30.0f);
+    Matrix.setRotateM(modelCube, 0, 50.0f, 0, 0, 1.0f);
+    Matrix.scaleM(modelCube, 0, 5.0f, 10.0f, 5.0f);
+    Matrix.multiplyMM(modelView, 0, view, 0, modelCube, 0);
+    Matrix.multiplyMM(modelViewProjection, 0, mPerspective, 0, modelView, 0);
+    drawCube();
+    Matrix.translateM(modelCube, 0, -30.0f, -50.0f, 45.0f);
+    Matrix.setRotateM(modelCube, 0, -30.0f, 0, 0, 1.0f);
+    Matrix.scaleM(modelCube, 0, 10.0f, 10.0f, 10.0f);
+    Matrix.multiplyMM(modelView, 0, view, 0, modelCube, 0);
+    Matrix.multiplyMM(modelViewProjection, 0, mPerspective, 0, modelView, 0);
+    drawCube();
+  }
+
   public void drawCube1() {
 
     GLES20.glUseProgram(cubeProgram);
@@ -834,7 +845,7 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
     float[] objPositionVec = new float[4];
     boolean CheckTouchX,CheckTouchZ,CheckTouch;
     CheckTouchX = CAMERA_X-3.0f < modelCube[12] && modelCube[12]  < CAMERA_X+3.0f;
-    CheckTouchZ = CAMERA_ZZ-3.0f < modelCube[14] && modelCube[14]  < CAMERA_ZZ+3.0f;
+    CheckTouchZ = CAMERA_Z-3.0f < modelCube[14] && modelCube[14]  < CAMERA_Z+3.0f;
     CheckTouch = CheckTouchX&&CheckTouchZ;
     return CheckTouch;
   }
@@ -851,7 +862,7 @@ public class MainActivity extends CardboardActivity implements CardboardView.Ste
     float[] objPositionVec = new float[4];
     boolean CheckTouchX,CheckTouchZ,CheckTouch;
     CheckTouchX = CAMERA_X-3.0f < modelCube1[12] && modelCube1[12]  < CAMERA_X+3.0f;
-    CheckTouchZ = CAMERA_ZZ-3.0f < modelCube1[14] && modelCube1[14]  < CAMERA_ZZ+3.0f;
+    CheckTouchZ = CAMERA_Z-3.0f < modelCube1[14] && modelCube1[14]  < CAMERA_Z+3.0f;
     CheckTouch = CheckTouchX&&CheckTouchZ;
     return CheckTouch;
   }
